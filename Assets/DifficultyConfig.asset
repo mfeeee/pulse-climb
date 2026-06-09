@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 911dfa57b97d6a8bfa81402d63e63b3b, type: 3}
+  m_Name: DifficultyConfig
+  m_EditorClassIdentifier: Assembly-CSharp::DifficultyConfig
+  blocks:
+  - platformCount: 6
+    minVerticalGap: 1.2
+    maxVerticalGap: 1.5
+    maxHorizontalOffset: 1
+  - platformCount: 6
+    minVerticalGap: 1.5
+    maxVerticalGap: 2
+    maxHorizontalOffset: 1.5
+  - platformCount: 10
+    minVerticalGap: 2.5
+    maxVerticalGap: 6
+    maxHorizontalOffset: 2
+  platformScale: {x: 4, y: 0.5, z: 3}
