@@ -36,12 +36,34 @@ public class PlatformSpawner : MonoBehaviour
 
     private void Start()
     {
-        _nextSpawnY = player.position.y - verticalSpacing;
+        // Registra a plataforma inicial manual como índice 0
+        PlatformBehavior startPlat = player.GetComponentInParent<PlatformBehavior>();
+        if (startPlat == null)
+        {
+            // Tenta achar pelo overlap abaixo do player
+            Collider[] hits = Physics.OverlapSphere(
+                player.position - Vector3.up * 0.5f, 0.5f);
+            foreach (var h in hits)
+            {
+                PlatformBehavior pb = h.GetComponent<PlatformBehavior>();
+                if (pb != null) { startPlat = pb; break; }
+            }
+        }
 
-        for (int i = 0; i < 8 && _spawnedCount < totalPlatforms; i++)
+        if (startPlat != null)
+        {
+            startPlat.Init(0, totalPlatforms);
+            _active.Add(startPlat);
+            CurrentPlatform = startPlat;
+            _spawnedCount = 1;
+        }
+
+        // Começa a spawnar acima da plataforma inicial
+        _nextSpawnY = player.position.y - 0.5f + verticalSpacing;
+
+        for (int i = 0; i < 7 && _spawnedCount < totalPlatforms; i++)
             SpawnNext();
 
-        if (_active.Count > 0) CurrentPlatform = _active[0];
         if (_active.Count > 1) NextPlatform = _active[1];
     }
 
@@ -91,4 +113,13 @@ public class PlatformSpawner : MonoBehaviour
 
     public bool IsFinalPlatform(PlatformBehavior pb) =>
         pb != null && pb.PlatformIndex >= totalPlatforms - 1;
+
+    // Retorna a plataforma N posições à frente da atual (para o boost)
+    public PlatformBehavior GetPlatformAhead(int steps)
+    {
+        if (CurrentPlatform == null) return null;
+        int idx = _active.IndexOf(CurrentPlatform);
+        int target = idx + steps;
+        return (target < _active.Count) ? _active[target] : null;
+    }
 }

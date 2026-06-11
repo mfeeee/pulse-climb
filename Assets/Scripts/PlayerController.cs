@@ -18,8 +18,6 @@ public class PlayerController : MonoBehaviour
     private float _holdTimer;
 
     public bool IsGrounded { get; private set; } = true;
-
-    // GameManager ouve este evento para checar vitória
     public event System.Action OnLanded;
 
     private void Awake()
@@ -35,7 +33,6 @@ public class PlayerController : MonoBehaviour
         if (_isHolding) _holdTimer += Time.deltaTime;
     }
 
-    // Chamado pelo Input System — Action: Jump
     public void OnJump(InputAction.CallbackContext ctx)
     {
         if (ctx.started)
@@ -47,9 +44,16 @@ public class PlayerController : MonoBehaviour
         if (ctx.canceled)
         {
             _isHolding = false;
+            if (_isJumping) return;
 
-            if (!IsGrounded || _isJumping) return;
-            if (!BeatManager.Instance.IsInsideBeatWindow()) return;
+            if (!IsGrounded) return;
+
+            // Tenta pular — se fora do beat, feedback de erro
+            if (!BeatManager.Instance.IsInsideBeatWindow())
+            {
+                PlatformSpawner.Instance.CurrentPlatform?.PulseMiss();
+                return;
+            }
 
             bool charged = _holdTimer >= holdThreshold;
             TryJump(charged);
@@ -58,15 +62,21 @@ public class PlayerController : MonoBehaviour
 
     private void TryJump(bool charged)
     {
-        PlatformBehavior target = PlatformSpawner.Instance.NextPlatform;
+        PlatformBehavior target = charged
+            ? PlatformSpawner.Instance.GetPlatformAhead(2)  // boost: pula 2
+            : PlatformSpawner.Instance.NextPlatform;         // normal: pula 1
+
         if (target == null) return;
+
+        // Feedback de acerto na plataforma atual
+        PlatformSpawner.Instance.CurrentPlatform?.PulseSuccess();
 
         float duration = charged ? chargedJumpDuration : jumpDuration;
         Vector3 destination = target.transform.position + Vector3.up * 0.65f;
-        StartCoroutine(SnapJump(destination, duration));
+        StartCoroutine(SnapJump(destination, duration, target));
     }
 
-    private IEnumerator SnapJump(Vector3 destination, float duration)
+    private IEnumerator SnapJump(Vector3 destination, float duration, PlatformBehavior target)
     {
         _isJumping = true;
         IsGrounded = false;
@@ -79,11 +89,9 @@ public class PlayerController : MonoBehaviour
         {
             elapsed += Time.deltaTime;
             float t = elapsed / duration;
-
             Vector3 pos = Vector3.Lerp(start, destination, t);
             pos.y = Mathf.Lerp(start.y, destination.y, t) + Mathf.Sin(t * Mathf.PI) * 1.5f;
             transform.position = pos;
-
             yield return null;
         }
 
@@ -92,10 +100,7 @@ public class PlayerController : MonoBehaviour
         _isJumping = false;
         IsGrounded = true;
 
-        PlatformSpawner.Instance.OnPlayerLanded(
-            PlatformSpawner.Instance.NextPlatform
-        );
-
+        PlatformSpawner.Instance.OnPlayerLanded(target);
         OnLanded?.Invoke();
     }
 }

@@ -6,6 +6,8 @@ public class PlatformBehavior : MonoBehaviour
     [SerializeField] private Renderer platformRenderer;
     [SerializeField] private Color normalColor = Color.white;
     [SerializeField] private Color beatColor = Color.cyan;
+    [SerializeField] private Color successColor = Color.green;
+    [SerializeField] private Color missColor = Color.red;
     [SerializeField] private Color finalColor = Color.yellow;
 
     public int PlatformIndex { get; private set; }
@@ -30,17 +32,31 @@ public class PlatformBehavior : MonoBehaviour
         Invoke(nameof(ResetColor), 0.15f);
     }
 
+    public void PulseSuccess()
+    {
+        CancelInvoke(nameof(ResetColor));
+        SetColor(successColor);
+        Invoke(nameof(ResetColor), 0.3f);
+    }
+
+    public void PulseMiss()
+    {
+        CancelInvoke(nameof(ResetColor));
+        SetColor(missColor);
+        Invoke(nameof(ResetColor), 0.3f);
+    }
+
     private void ResetColor() => SetColor(_isFinal ? finalColor : normalColor);
 
     private void SetColor(Color c)
     {
         if (platformRenderer == null) return;
         platformRenderer.GetPropertyBlock(_propBlock);
-        _propBlock.SetColor("_BaseColor", c);
+        _propBlock.SetColor("_Color", c);
         platformRenderer.SetPropertyBlock(_propBlock);
     }
 
-    private void OnCollisionEnter(Collision col)
+        private void OnCollisionEnter(Collision col)
     {
         if (col.gameObject.CompareTag("Player"))
             PlatformSpawner.Instance.OnPlayerLanded(this);
