@@ -52,6 +52,7 @@ public class PlayerController : MonoBehaviour
             if (!BeatManager.Instance.IsInsideBeatWindow())
             {
                 PlatformSpawner.Instance.CurrentPlatform?.PulseMiss();
+                AudioManager.Instance.PlayMiss();
                 return;
             }
 
@@ -70,6 +71,8 @@ public class PlayerController : MonoBehaviour
 
         // Feedback de acerto na plataforma atual
         PlatformSpawner.Instance.CurrentPlatform?.PulseSuccess();
+
+        AudioManager.Instance.PlayJump();
 
         float duration = charged ? chargedJumpDuration : jumpDuration;
         Vector3 destination = target.transform.position + Vector3.up * 0.65f;

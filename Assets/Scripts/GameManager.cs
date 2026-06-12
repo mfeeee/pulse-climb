@@ -46,6 +46,7 @@ public class GameManager : MonoBehaviour
 
     public void TriggerVictory()
     {
+        AudioManager.Instance.PlaySuccess();
         hudPanel.SetActive(false);
         victoryPanel.SetActive(true);
         Time.timeScale = 0f;

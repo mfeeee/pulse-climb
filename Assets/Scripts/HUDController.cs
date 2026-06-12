@@ -3,8 +3,9 @@ using UnityEngine.UI;
 
 public class HUDController : MonoBehaviour
 {
+    [Header("Referências")]
     [SerializeField] private Slider progressBar;
-    [SerializeField] private PlayerController player;
+    [SerializeField] private int totalPlatforms = 20;
 
     private void Update()
     {
@@ -13,8 +14,7 @@ public class HUDController : MonoBehaviour
         PlatformBehavior current = PlatformSpawner.Instance.CurrentPlatform;
         if (current == null) return;
 
-        int total = 20; // deve bater com o totalPlatforms do PlatformSpawner
-        float progress = (float)current.PlatformIndex / (total - 1);
-        progressBar.value = progress;
+        float progress = (float)current.PlatformIndex / (totalPlatforms - 1);
+        progressBar.value = Mathf.Clamp01(progress);
     }
 }
