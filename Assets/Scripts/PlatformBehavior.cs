@@ -4,15 +4,17 @@ public class PlatformBehavior : MonoBehaviour
 {
     [Header("Visual")]
     [SerializeField] private Renderer platformRenderer;
-    [SerializeField] private Color normalColor = Color.white;
-    [SerializeField] private Color beatColor = Color.cyan;
+    [SerializeField] private Color normalColor  = Color.white;
+    [SerializeField] private Color beatColor    = Color.cyan;
     [SerializeField] private Color successColor = Color.green;
-    [SerializeField] private Color missColor = Color.red;
-    [SerializeField] private Color finalColor = Color.yellow;
+    [SerializeField] private Color missColor    = Color.red;
+    [SerializeField] private Color finalColor   = Color.yellow;
 
     public int PlatformIndex { get; private set; }
     private bool _isFinal;
     private MaterialPropertyBlock _propBlock;
+    private void OnEnable()  => BeatManager.Instance?.RegisterPlatform(this);
+    private void OnDisable() => BeatManager.Instance?.UnregisterPlatform(this);
 
     private void Awake()
     {
@@ -56,9 +58,4 @@ public class PlatformBehavior : MonoBehaviour
         platformRenderer.SetPropertyBlock(_propBlock);
     }
 
-        private void OnCollisionEnter(Collision col)
-    {
-        if (col.gameObject.CompareTag("Player"))
-            PlatformSpawner.Instance.OnPlayerLanded(this);
-    }
 }

@@ -6,20 +6,20 @@ public class PlatformSpawner : MonoBehaviour
     [Header("Referências")]
     [SerializeField] private GameObject platformPrefab;
     [SerializeField] private Transform player;
+    [SerializeField] private PlatformBehavior startPlatform; // ← arraste no Inspector
 
     [Header("Layout")]
     [SerializeField, Range(2f, 5f)] private float verticalSpacing = 3f;
     [SerializeField] private int totalPlatforms = 20;
     [SerializeField] private int poolSize = 12;
 
-    public PlatformBehavior CurrentPlatform { get; private set; }
-    public PlatformBehavior NextPlatform { get; private set; }
+    public PlatformBehavior CurrentPlatform  { get; private set; }
+    public PlatformBehavior NextPlatform     { get; private set; }
+    public static PlatformSpawner Instance   { get; private set; }
 
-    public static PlatformSpawner Instance { get; private set; }
-
-    private readonly Queue<GameObject> _pool = new Queue<GameObject>();
+    private readonly Queue<GameObject>      _pool   = new Queue<GameObject>();
     private readonly List<PlatformBehavior> _active = new List<PlatformBehavior>();
-    private int _spawnedCount = 0;
+    private int   _spawnedCount = 0;
     private float _nextSpawnY;
 
     private void Awake()
@@ -36,29 +36,18 @@ public class PlatformSpawner : MonoBehaviour
 
     private void Start()
     {
-        // Registra a plataforma inicial manual como índice 0
-        PlatformBehavior startPlat = player.GetComponentInParent<PlatformBehavior>();
-        if (startPlat == null)
+        if (startPlatform != null)
         {
-            // Tenta achar pelo overlap abaixo do player
-            Collider[] hits = Physics.OverlapSphere(
-                player.position - Vector3.up * 0.5f, 0.5f);
-            foreach (var h in hits)
-            {
-                PlatformBehavior pb = h.GetComponent<PlatformBehavior>();
-                if (pb != null) { startPlat = pb; break; }
-            }
-        }
-
-        if (startPlat != null)
-        {
-            startPlat.Init(0, totalPlatforms);
-            _active.Add(startPlat);
-            CurrentPlatform = startPlat;
+            startPlatform.Init(0, totalPlatforms);
+            _active.Add(startPlatform);
+            CurrentPlatform = startPlatform;
             _spawnedCount = 1;
         }
+        else
+        {
+            Debug.LogError("[PlatformSpawner] startPlatform não atribuída no Inspector!");
+        }
 
-        // Começa a spawnar acima da plataforma inicial
         _nextSpawnY = player.position.y - 0.5f + verticalSpacing;
 
         for (int i = 0; i < 7 && _spawnedCount < totalPlatforms; i++)
@@ -106,7 +95,6 @@ public class PlatformSpawner : MonoBehaviour
     public void OnPlayerLanded(PlatformBehavior landed)
     {
         CurrentPlatform = landed;
-
         int idx = _active.IndexOf(landed);
         NextPlatform = (idx >= 0 && idx + 1 < _active.Count) ? _active[idx + 1] : null;
     }
@@ -114,7 +102,6 @@ public class PlatformSpawner : MonoBehaviour
     public bool IsFinalPlatform(PlatformBehavior pb) =>
         pb != null && pb.PlatformIndex >= totalPlatforms - 1;
 
-    // Retorna a plataforma N posições à frente da atual (para o boost)
     public PlatformBehavior GetPlatformAhead(int steps)
     {
         if (CurrentPlatform == null) return null;

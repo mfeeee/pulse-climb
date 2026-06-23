@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class BeatManager : MonoBehaviour
@@ -15,7 +16,10 @@ public class BeatManager : MonoBehaviour
 
     private float _beatInterval;
     private float _beatTimer;
-    private bool _insideWindow;
+    private bool  _insideWindow;
+
+    // Platforms se auto-registram — sem FindObjectsByType a cada beat
+    private readonly List<PlatformBehavior> _platforms = new List<PlatformBehavior>();
 
     private void Awake()
     {
@@ -25,9 +29,11 @@ public class BeatManager : MonoBehaviour
 
     private void Start()
     {
-        if (musicSource != null)
-            musicSource.Play();
+        if (musicSource != null) musicSource.Play();
     }
+
+    public void RegisterPlatform(PlatformBehavior pb)   => _platforms.Add(pb);
+    public void UnregisterPlatform(PlatformBehavior pb) => _platforms.Remove(pb);
 
     private void Update()
     {
@@ -45,14 +51,8 @@ public class BeatManager : MonoBehaviour
     private void FireBeat()
     {
         OnBeat?.Invoke();
-
-        PlatformBehavior[] platforms = FindObjectsByType<PlatformBehavior>(
-            FindObjectsInactive.Exclude,
-            FindObjectsSortMode.None
-        );
-
-        foreach (var pb in platforms)
-            pb.PulseOnBeat();
+        for (int i = 0; i < _platforms.Count; i++)
+            _platforms[i].PulseOnBeat();
     }
 
     public bool IsInsideBeatWindow() => _insideWindow;
