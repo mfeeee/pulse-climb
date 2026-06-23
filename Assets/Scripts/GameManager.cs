@@ -13,7 +13,11 @@ public class GameManager : MonoBehaviour
     [Header("Referências")]
     [SerializeField] private PlayerController player;
 
+    [Header("Regras")]
+    [SerializeField, Range(1, 5)] private int errorsToGoBack = 2;
+
     private bool _gameOver;
+    private int  _consecutiveErrors;
 
     private void Awake()
     {
@@ -23,8 +27,23 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        player.OnLanded += CheckVictory;
+        player.OnLanded      += CheckVictory;
+        player.OnBeatSuccess += OnSuccess;
+        player.OnBeatMiss    += OnMiss;
         ShowHUD();
+    }
+
+    private void OnSuccess() => _consecutiveErrors = 0;
+
+    private void OnMiss()
+    {
+        _consecutiveErrors++;
+
+        if (_consecutiveErrors >= errorsToGoBack)
+        {
+            _consecutiveErrors = 0;
+            player.ForceMoveBack(); // ele decide se recua ou cai
+        }
     }
 
     private void CheckVictory()
