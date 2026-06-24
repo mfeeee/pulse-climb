@@ -1,5 +1,8 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Collections;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -15,6 +18,7 @@ public class GameManager : MonoBehaviour
 
     [Header("Regras")]
     [SerializeField, Range(1, 5)] private int errorsToGoBack = 2;
+    [SerializeField, Range(0f, 1f)] private float stopBeforeVictorySound = 0.3f;
 
     [Header("Level")]
     [SerializeField] private LevelData levelData;
@@ -74,6 +78,15 @@ public class GameManager : MonoBehaviour
 
     public void TriggerVictory()
     {
+        // Para a música com fade, depois toca o som de vitória
+        BeatManager.Instance.StopMusic(stopBeforeVictorySound);
+        StartCoroutine(VictorySequence());
+    }
+
+
+    private IEnumerator VictorySequence()
+    {
+        yield return new WaitForSecondsRealtime(stopBeforeVictorySound);
         AudioManager.Instance.PlaySuccess();
         hudPanel.SetActive(false);
         victoryPanel.SetActive(true);

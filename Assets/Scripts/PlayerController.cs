@@ -40,12 +40,24 @@ public class PlayerController : MonoBehaviour
         if (_isHolding) _holdTimer += Time.deltaTime;
     }
 
+    private bool _pressedInWindow;
+
     public void OnJump(InputAction.CallbackContext ctx)
     {
         if (ctx.started)
         {
-            _isHolding = true;
-            _holdTimer = 0f;
+            _isHolding    = true;
+            _holdTimer    = 0f;
+
+            // Verifica a janela NO MOMENTO do press — não do release
+            _pressedInWindow = BeatManager.Instance.IsInsideBeatWindow();
+
+            if (!_pressedInWindow)
+            {
+                PlatformSpawner.Instance.CurrentPlatform?.PulseMiss();
+                AudioManager.Instance.PlayMiss();
+                OnBeatMiss?.Invoke();
+            }
         }
 
         if (ctx.canceled)
@@ -53,16 +65,10 @@ public class PlayerController : MonoBehaviour
             _isHolding = false;
             if (_isJumping || _isFalling) return;
             if (!IsGrounded)              return;
-
-            if (!BeatManager.Instance.IsInsideBeatWindow())
-            {
-                PlatformSpawner.Instance.CurrentPlatform?.PulseMiss();
-                AudioManager.Instance.PlayMiss();
-                OnBeatMiss?.Invoke();
-                return;
-            }
+            if (!_pressedInWindow)        return; // press foi fora da janela — ignora
 
             TryJump(_holdTimer >= holdThreshold);
+            _pressedInWindow = false;
         }
     }
 

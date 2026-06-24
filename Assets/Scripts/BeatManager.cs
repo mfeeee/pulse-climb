@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -11,7 +12,9 @@ public class BeatManager : MonoBehaviour
     [Header("Beat Window")]
     [SerializeField, Range(0.05f, 0.4f)] private float windowHalfSize = 0.25f;
 
+    [Header("Áudio")]
     [SerializeField] private AudioSource musicSource;
+    [SerializeField, Range(0f, 1f)] private float stopBeforeEndSeconds = 0.3f; // para N segundos antes do fim
 
     public event System.Action OnBeat;
     public float CurrentBpm => levelData != null ? levelData.bpm : 120f;
@@ -20,6 +23,7 @@ public class BeatManager : MonoBehaviour
     private float _beatTimer;
     private bool  _insideWindow;
     private bool  _ready;
+    private bool  _musicStopped;
 
     private readonly List<PlatformBehavior> _platforms = new List<PlatformBehavior>();
 
@@ -32,7 +36,7 @@ public class BeatManager : MonoBehaviour
 
         if (levelData == null)
         {
-            Debug.LogError("[BeatManager] levelData é null! Atribua um LevelData no Inspector.");
+            Debug.LogError("[BeatManager] levelData é null!");
             return;
         }
 
@@ -51,7 +55,7 @@ public class BeatManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("[BeatManager] musicSource é null! Arraste o AudioSource no Inspector.");
+            Debug.LogError("[BeatManager] musicSource é null!");
         }
     }
 
@@ -60,7 +64,7 @@ public class BeatManager : MonoBehaviour
 
     private void Update()
     {
-        if (!_ready) return;
+        if (!_ready || _musicStopped) return;
 
         _beatTimer += Time.deltaTime;
 
@@ -72,6 +76,17 @@ public class BeatManager : MonoBehaviour
             _beatTimer -= _beatInterval;
             FireBeat();
         }
+
+        // Verifica fim da música
+        if (musicSource != null && levelData.music != null)
+        {
+            float timeLeft = levelData.music.length - musicSource.time;
+
+            // Para a música N segundos antes do fim (para vitória)
+            // GameManager chama StopMusic() antes — esse bloco só atua se a música chegou ao fim sozinha
+            if (timeLeft <= 0.05f)
+                OnMusicEnd();
+        }
     }
 
     private void FireBeat()
@@ -80,5 +95,36 @@ public class BeatManager : MonoBehaviour
         foreach (var pb in _platforms) pb.PulseOnBeat();
     }
 
-    public bool IsInsideBeatWindow() => _ready && _insideWindow;
+    // Chamado pelo GameManager quando o jogador vence — para a música antes do som de vitória
+    public void StopMusic(float fadeSeconds = 0.3f)
+    {
+        if (_musicStopped) return;
+        _musicStopped = true;
+        StartCoroutine(FadeOut(fadeSeconds));
+    }
+
+    private IEnumerator FadeOut(float duration)
+    {
+        float startVolume = musicSource.volume;
+        float elapsed     = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            musicSource.volume = Mathf.Lerp(startVolume, 0f, elapsed / duration);
+            yield return null;
+        }
+
+        musicSource.Stop();
+        musicSource.volume = startVolume; // restaura para o próximo play
+    }
+
+    private void OnMusicEnd()
+    {
+        _musicStopped = true;
+        musicSource.Stop();
+        GameManager.Instance.TriggerGameOver(); // música acabou sem chegar no topo = game over
+    }
+
+    public bool IsInsideBeatWindow() => _ready && !_musicStopped && _insideWindow;
 }
