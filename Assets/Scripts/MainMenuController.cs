@@ -6,6 +6,7 @@ public class MainMenuController : MonoBehaviour
     [Header("Painéis")]
     [SerializeField] private GameObject mainPanel;
     [SerializeField] private GameObject instructionsPanel;
+    [SerializeField] private int levelSelectSceneIndex = 1;
 
     private void Start()
     {
@@ -31,5 +32,15 @@ public class MainMenuController : MonoBehaviour
         instructionsPanel.SetActive(true);
         mainPanel.SetActive(true);
         instructionsPanel.SetActive(false);
+    }
+
+    public void GoToLevelSelect()
+    {
+        SceneManager.LoadScene(levelSelectSceneIndex);
+    }
+
+    public void QuitGame()
+    {
+        Application.Quit();
     }
 }

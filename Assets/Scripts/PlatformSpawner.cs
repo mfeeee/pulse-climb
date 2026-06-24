@@ -3,30 +3,33 @@ using UnityEngine;
 
 public class PlatformSpawner : MonoBehaviour
 {
-    [Header("Referências")]
-    [SerializeField] private GameObject platformPrefab;
-    [SerializeField] private Transform player;
-    [SerializeField] private PlatformBehavior startPlatform;
+    public static PlatformSpawner Instance { get; private set; }
 
-    [Header("Layout")]
-    [SerializeField, Range(2f, 5f)] private float verticalSpacing = 3f;
-    [SerializeField] private int totalPlatforms = 20;
-    [SerializeField] private int poolSize = 12;
+    [Header("Level")]
+    [SerializeField] private LevelData levelData;
+
+    [Header("Referências")]
+    [SerializeField] private GameObject      platformPrefab;
+    [SerializeField] private Transform       player;
+    [SerializeField] private PlatformBehavior startPlatform;
 
     public PlatformBehavior CurrentPlatform  { get; private set; }
     public PlatformBehavior NextPlatform     { get; private set; }
-    public PlatformBehavior PreviousPlatform { get; private set; } // ← novo
-    public static PlatformSpawner Instance   { get; private set; }
+    public PlatformBehavior PreviousPlatform { get; private set; }
 
-    private readonly Queue<GameObject>      _pool   = new Queue<GameObject>();
-    private readonly List<PlatformBehavior> _active = new List<PlatformBehavior>();
-    private int   _spawnedCount = 0;
+    private readonly Queue<GameObject>       _pool   = new Queue<GameObject>();
+    private readonly List<PlatformBehavior>  _active = new List<PlatformBehavior>();
+    private int   _spawnedCount;
     private float _nextSpawnY;
+    private int   _totalPlatforms; // calculado do LevelData em Start
 
     private void Awake()
     {
         Instance = this;
-        for (int i = 0; i < poolSize; i++)
+        if (LevelSelector.Selected != null)
+            levelData = LevelSelector.Selected;
+
+        for (int i = 0; i < levelData.poolSize; i++)
         {
             GameObject obj = Instantiate(platformPrefab);
             obj.SetActive(false);
@@ -36,9 +39,11 @@ public class PlatformSpawner : MonoBehaviour
 
     private void Start()
     {
+        _totalPlatforms = levelData.TotalPlatforms;
+
         if (startPlatform != null)
         {
-            startPlatform.Init(0, totalPlatforms);
+            startPlatform.Init(0, _totalPlatforms);
             _active.Add(startPlatform);
             CurrentPlatform = startPlatform;
             _spawnedCount = 1;
@@ -48,12 +53,13 @@ public class PlatformSpawner : MonoBehaviour
             Debug.LogError("[PlatformSpawner] startPlatform não atribuída no Inspector!");
         }
 
-        _nextSpawnY = player.position.y - 0.5f + verticalSpacing;
-        for (int i = 0; i < 7 && _spawnedCount < totalPlatforms; i++)
+        _nextSpawnY = player.position.y - 0.5f + levelData.verticalSpacing;
+
+        for (int i = 0; i < 8 && _spawnedCount < _totalPlatforms; i++)
             SpawnNext();
 
         if (_active.Count > 1) NextPlatform = _active[1];
-        PreviousPlatform = null; // na plataforma inicial não há anterior
+        PreviousPlatform = null;
     }
 
     private void Update()
@@ -61,7 +67,7 @@ public class PlatformSpawner : MonoBehaviour
         if (_active.Count > 0)
         {
             float highestY = _active[_active.Count - 1].transform.position.y;
-            if (player.position.y + 15f > highestY && _spawnedCount < totalPlatforms)
+            if (player.position.y + 15f > highestY && _spawnedCount < _totalPlatforms)
                 SpawnNext();
         }
 
@@ -72,15 +78,16 @@ public class PlatformSpawner : MonoBehaviour
     private void SpawnNext()
     {
         if (_pool.Count == 0) return;
+
         GameObject obj = _pool.Dequeue();
         obj.transform.position = new Vector3(0f, _nextSpawnY, 0f);
         obj.SetActive(true);
 
         PlatformBehavior pb = obj.GetComponent<PlatformBehavior>();
-        pb.Init(_spawnedCount, totalPlatforms);
+        pb.Init(_spawnedCount, _totalPlatforms);
         _active.Add(pb);
 
-        _nextSpawnY += verticalSpacing;
+        _nextSpawnY += levelData.verticalSpacing;
         _spawnedCount++;
     }
 
@@ -101,17 +108,16 @@ public class PlatformSpawner : MonoBehaviour
     }
 
     public bool IsFinalPlatform(PlatformBehavior pb) =>
-        pb != null && pb.PlatformIndex >= totalPlatforms - 1;
+        pb != null && pb.PlatformIndex >= _totalPlatforms - 1;
 
     public PlatformBehavior GetPlatformAhead(int steps)
     {
         if (CurrentPlatform == null) return null;
-        int idx = _active.IndexOf(CurrentPlatform);
+        int idx    = _active.IndexOf(CurrentPlatform);
         int target = idx + steps;
         return (target < _active.Count) ? _active[target] : null;
     }
 
-    // Retorna índice da plataforma atual dentro da lista ativa
     public int GetCurrentActiveIndex()
     {
         if (CurrentPlatform == null) return -1;

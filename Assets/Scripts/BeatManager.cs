@@ -5,11 +5,12 @@ public class BeatManager : MonoBehaviour
 {
     public static BeatManager Instance { get; private set; }
 
-    [Header("Ritmo")]
-    [SerializeField, Range(60f, 180f)] private float bpm = 120f;
-    [SerializeField, Range(0.05f, 0.5f)] private float beatWindowSize = 0.2f;
+    [Header("Level")]
+    [SerializeField] private LevelData levelData;
 
-    [Header("Referências")]
+    [Header("Beat Window")]
+    [SerializeField, Range(0.05f, 0.4f)] private float windowHalfSize = 0.15f;
+
     [SerializeField] private AudioSource musicSource;
 
     public event System.Action OnBeat;
@@ -18,18 +19,23 @@ public class BeatManager : MonoBehaviour
     private float _beatTimer;
     private bool  _insideWindow;
 
-    // Platforms se auto-registram — sem FindObjectsByType a cada beat
     private readonly List<PlatformBehavior> _platforms = new List<PlatformBehavior>();
 
     private void Awake()
     {
         Instance = this;
-        _beatInterval = 60f / bpm;
+
+        // BPM vem do LevelData — não hardcoded
+        _beatInterval = 60f / levelData.bpm;
     }
 
     private void Start()
     {
-        if (musicSource != null) musicSource.Play();
+        if (musicSource != null)
+        {
+            musicSource.clip = levelData.music;
+            musicSource.Play();
+        }
     }
 
     public void RegisterPlatform(PlatformBehavior pb)   => _platforms.Add(pb);
@@ -39,20 +45,20 @@ public class BeatManager : MonoBehaviour
     {
         _beatTimer += Time.deltaTime;
 
+        _insideWindow = _beatTimer >= (_beatInterval - windowHalfSize) &&
+                        _beatTimer <= (_beatInterval + windowHalfSize);
+
         if (_beatTimer >= _beatInterval)
         {
             _beatTimer -= _beatInterval;
             FireBeat();
         }
-
-        _insideWindow = _beatTimer <= beatWindowSize;
     }
 
     private void FireBeat()
     {
         OnBeat?.Invoke();
-        for (int i = 0; i < _platforms.Count; i++)
-            _platforms[i].PulseOnBeat();
+        foreach (var pb in _platforms) pb.PulseOnBeat();
     }
 
     public bool IsInsideBeatWindow() => _insideWindow;

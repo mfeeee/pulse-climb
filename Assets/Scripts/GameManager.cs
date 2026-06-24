@@ -16,6 +16,9 @@ public class GameManager : MonoBehaviour
     [Header("Regras")]
     [SerializeField, Range(1, 5)] private int errorsToGoBack = 2;
 
+    [Header("Level")]
+    [SerializeField] private LevelData levelData;
+
     private bool _gameOver;
     private int  _consecutiveErrors;
 
@@ -23,13 +26,19 @@ public class GameManager : MonoBehaviour
     {
         Instance = this;
         Time.timeScale = 1f;
+
+        if (LevelSelector.Selected != null)
+            levelData = LevelSelector.Selected;
     }
+
+
 
     private void Start()
     {
-        player.OnLanded      += CheckVictory;
+        errorsToGoBack = levelData.errorsToGoBack;
+        player.OnLanded += CheckVictory;
         player.OnBeatSuccess += OnSuccess;
-        player.OnBeatMiss    += OnMiss;
+        player.OnBeatMiss += OnMiss;
         ShowHUD();
     }
 
