@@ -279,9 +279,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 141084413}
         m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
-        m_MethodName: Restart
+        m_MethodName: RestartLevel
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -358,9 +358,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 82dd720223f9892a5a434650a4030106, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
-  hudPanel: {fileID: 0}
-  gameOverPanel: {fileID: 0}
-  victoryPanel: {fileID: 0}
+  hudPanel: {fileID: 189142100}
+  gameOverPanel: {fileID: 163084433}
+  victoryPanel: {fileID: 62266788}
   player: {fileID: 468236566}
   errorsToGoBack: 2
   stopBeforeVictorySound: 0.3
@@ -512,8 +512,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HUDController
   progressBar: {fileID: 558033813}
-  boostIndicator: {fileID: 1481660070}
-  boostFillImage: {fileID: 1164024585}
+  boostIndicator: {fileID: 299442739}
+  boostFillImage: {fileID: 749204532}
   streakToBoost: 5
 --- !u!114 &189142103
 MonoBehaviour:
@@ -3184,7 +3184,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 141084413}
         m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
         m_MethodName: GoToMainMenu
         m_Mode: 1
