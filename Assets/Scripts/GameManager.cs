@@ -93,6 +93,7 @@ public class GameManager : MonoBehaviour
         if (_gameOver) return;
         _gameOver = true;
 
+        BeatManager.Instance.StopMusic(0.1f);
         hudPanel.SetActive(false);
         gameOverPanel.SetActive(true);
         Time.timeScale = 0f;
