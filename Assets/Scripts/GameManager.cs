@@ -23,8 +23,13 @@ public class GameManager : MonoBehaviour
     [Header("Level")]
     [SerializeField] private LevelData levelData;
 
+    [Header("Boost")]
+    [SerializeField, Range(2, 10)] private int streakToBoost = 5;
+
     private bool _gameOver;
     private int  _consecutiveErrors;
+    public bool BoostReady { get; private set; }
+    private int _streak;
 
     private void Awake()
     {
@@ -46,17 +51,36 @@ public class GameManager : MonoBehaviour
         ShowHUD();
     }
 
-    private void OnSuccess() => _consecutiveErrors = 0;
+    private void OnSuccess()
+    {
+        _consecutiveErrors = 0;
+        _streak++;
+        HUDController.Instance?.UpdateStreak(_streak); // atualiza o fill parcial
+
+        if (_streak >= streakToBoost && !BoostReady)
+        {
+            BoostReady = true;
+            _streak    = 0;
+            HUDController.Instance?.ShowBoostReady();
+        }
+    }
 
     private void OnMiss()
     {
+        _streak = 0; // erra — perde o streak
         _consecutiveErrors++;
 
         if (_consecutiveErrors >= errorsToGoBack)
         {
             _consecutiveErrors = 0;
-            player.ForceMoveBack(); // ele decide se recua ou cai
+            player.ForceMoveBack();
         }
+    }
+
+    public void ConsumeBoost()
+    {
+        BoostReady = false;
+        HUDController.Instance?.HideBoostReady();
     }
 
     private void CheckVictory()
@@ -93,10 +117,17 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 0f;
     }
 
-    public void Restart()
+    public void RestartLevel()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene(0);
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+
+    // Volta ao menu principal
+    public void GoToMainMenu()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(0); // cena 0 = MainMenu
     }
 
     private void ShowHUD()

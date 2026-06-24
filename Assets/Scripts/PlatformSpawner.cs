@@ -22,6 +22,7 @@ public class PlatformSpawner : MonoBehaviour
     private int   _spawnedCount;
     private float _nextSpawnY;
     private int   _totalPlatforms; // calculado do LevelData em Start
+    public int TotalPlatforms => _totalPlatforms;
 
     private void Awake()
     {

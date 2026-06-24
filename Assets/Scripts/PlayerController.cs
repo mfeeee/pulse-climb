@@ -74,9 +74,17 @@ public class PlayerController : MonoBehaviour
 
     private void TryJump(bool charged)
     {
-        PlatformBehavior target = charged
-            ? PlatformSpawner.Instance.GetPlatformAhead(2)
-            : PlatformSpawner.Instance.NextPlatform;
+        // Boost tem prioridade sobre charged jump
+        bool boosting = GameManager.Instance.BoostReady;
+
+        PlatformBehavior target;
+
+        if (boosting)
+            target = PlatformSpawner.Instance.GetPlatformAhead(3);
+        else if (charged)
+            target = PlatformSpawner.Instance.GetPlatformAhead(2);
+        else
+            target = PlatformSpawner.Instance.NextPlatform;
 
         if (target == null) return;
 
@@ -84,7 +92,9 @@ public class PlayerController : MonoBehaviour
         AudioManager.Instance.PlayJump();
         OnBeatSuccess?.Invoke();
 
-        float duration      = charged ? chargedJumpDuration : jumpDuration;
+        if (boosting) GameManager.Instance.ConsumeBoost();
+
+        float duration      = boosting ? chargedJumpDuration : (charged ? chargedJumpDuration : jumpDuration);
         Vector3 destination = target.transform.position + Vector3.up * 0.65f;
         StartCoroutine(SnapJump(destination, duration, target));
     }
