@@ -127,4 +127,14 @@ public class BeatManager : MonoBehaviour
     }
 
     public bool IsInsideBeatWindow() => _ready && !_musicStopped && _insideWindow;
+
+    public void PauseMusic()
+    {
+        if (musicSource != null) musicSource.Pause();
+    }
+
+    public void ResumeMusic()
+    {
+        if (musicSource != null) musicSource.UnPause();
+    }
 }
