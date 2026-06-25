@@ -15,6 +15,9 @@ public class HUDController : MonoBehaviour
     [Header("Streak")]
     [SerializeField, Range(2, 10)] private int streakToBoost = 5;
 
+    [Header("Collectibles")]
+    [SerializeField] private TMPro.TMP_Text collectiblesText;
+
     private int   _totalPlatforms;
     private int   _currentStreak;
     private bool  _initialized;
@@ -65,5 +68,11 @@ public class HUDController : MonoBehaviour
     {
         if (boostIndicator != null) boostIndicator.SetActive(false);
         if (boostFillImage  != null) boostFillImage.fillAmount = 0f;
+    }
+
+    public void UpdateCollectibles(int count)
+    {
+        if (collectiblesText != null)
+            collectiblesText.text = $"SCORE: {count}";
     }
 }

@@ -122,14 +122,22 @@ public class PlayerController : MonoBehaviour
     {
         _isFalling   = true;
         IsGrounded   = false;
-        _col.enabled = false; // evita colisão com plataformas durante a queda
+        _col.enabled = false;
 
         float speed = 0f;
 
-        while (_isFalling) // DeathZone chama TriggerGameOver e para o jogo via timeScale = 0
+        while (_isFalling)
         {
             speed += fallAcceleration * Time.deltaTime;
             transform.position += Vector3.down * speed * Time.deltaTime;
+
+            // Se caiu muito sem a DeathZone pegar (câmera parada), mata direto
+            if (speed > 20f)
+            {
+                GameManager.Instance.TriggerGameOver();
+                yield break;
+            }
+
             yield return null;
         }
     }

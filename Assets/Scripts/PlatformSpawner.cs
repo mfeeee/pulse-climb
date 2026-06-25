@@ -9,19 +9,24 @@ public class PlatformSpawner : MonoBehaviour
     [SerializeField] private LevelData levelData;
 
     [Header("Referências")]
-    [SerializeField] private GameObject      platformPrefab;
-    [SerializeField] private Transform       player;
+    [SerializeField] private GameObject       platformPrefab;
+    [SerializeField] private Transform        player;
     [SerializeField] private PlatformBehavior startPlatform;
+
+    [Header("Collectibles")]
+    [SerializeField] private GameObject collectiblePrefab;
+    [Range(0f, 1f)]
+    [SerializeField] private float collectibleSpawnChance = 0.3f;
 
     public PlatformBehavior CurrentPlatform  { get; private set; }
     public PlatformBehavior NextPlatform     { get; private set; }
     public PlatformBehavior PreviousPlatform { get; private set; }
 
-    private readonly Queue<GameObject>       _pool   = new Queue<GameObject>();
-    private readonly List<PlatformBehavior>  _active = new List<PlatformBehavior>();
+    private readonly Queue<GameObject>      _pool   = new Queue<GameObject>();
+    private readonly List<PlatformBehavior> _active = new List<PlatformBehavior>();
     private int   _spawnedCount;
     private float _nextSpawnY;
-    private int   _totalPlatforms; // calculado do LevelData em Start
+    private int   _totalPlatforms;
     public int TotalPlatforms => _totalPlatforms;
 
     private void Awake()
@@ -88,8 +93,19 @@ public class PlatformSpawner : MonoBehaviour
         pb.Init(_spawnedCount, _totalPlatforms);
         _active.Add(pb);
 
+        TrySpawnCollectible(obj.transform.position);
+
         _nextSpawnY += levelData.verticalSpacing;
         _spawnedCount++;
+    }
+
+    private void TrySpawnCollectible(Vector3 platformPosition)
+    {
+        if (collectiblePrefab == null) return;
+        if (Random.value > collectibleSpawnChance) return;
+
+        Vector3 offset = new Vector3(0f, 1.5f, 0f);
+        Instantiate(collectiblePrefab, platformPosition + offset, Quaternion.identity);
     }
 
     private void Recycle(PlatformBehavior pb)

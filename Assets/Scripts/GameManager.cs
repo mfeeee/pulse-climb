@@ -28,6 +28,7 @@ public class GameManager : MonoBehaviour
     private int  _consecutiveErrors;
     public bool BoostReady { get; private set; }
     private int _streak;
+    private int _collectiblesCount = 0;
 
     private void Awake()
     {
@@ -37,8 +38,6 @@ public class GameManager : MonoBehaviour
         if (LevelSelector.Selected != null)
             levelData = LevelSelector.Selected;
     }
-
-
 
     private void Start()
     {
@@ -67,6 +66,13 @@ public class GameManager : MonoBehaviour
     {
         _streak = 0; // erra — perde o streak
         _consecutiveErrors++;
+
+        if (BoostReady)
+        {
+            BoostReady = false;
+            HUDController.Instance?.HideBoostReady();
+        }
+
 
         if (_consecutiveErrors >= errorsToGoBack)
         {
@@ -134,5 +140,21 @@ public class GameManager : MonoBehaviour
         hudPanel.SetActive(true);
         gameOverPanel.SetActive(false);
         victoryPanel.SetActive(false);
+    }
+
+    private void OnEnable()
+    {
+        CollectibleItem.OnCollected += HandleCollected;
+    }
+
+    private void OnDisable()
+    {
+        CollectibleItem.OnCollected -= HandleCollected;
+    }
+
+    private void HandleCollected(int value)
+    {
+        _collectiblesCount++;
+        HUDController.Instance?.UpdateCollectibles(_collectiblesCount);
     }
 }
