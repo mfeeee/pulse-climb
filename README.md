@@ -100,7 +100,7 @@ Assets/
 ## 🚀 Como Executar
 
 ### Online
-> *(Inserir link do build WebGL publicado — ex: itch.io ou GitHub Pages)*
+> *[Pulse Climb - Play Unity](https://play.unity.com/en/games/c2a54b0e-7347-4f8f-9dad-344c6089597f/pulseclimb)*
 
 ### Local (a partir do código-fonte)
 1. Clone o repositório:
