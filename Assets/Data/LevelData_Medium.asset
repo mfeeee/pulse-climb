@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LevelData
   music: {fileID: 8300000, guid: 9b80a1a914bc8ad11a9600dd599eeae1, type: 3}
   bpm: 120
-  beatsPerPlatform: 1.5
+  beatsPerPlatform: 2
   errorsToGoBack: 2
   verticalSpacing: 3
   poolSize: 15
